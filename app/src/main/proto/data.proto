@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option java_package = "com.smartethnet.rustun.proto";
+option java_multiple_files = true;
+
+message Config {
+  string name = 1;
+  string server = 2;
+  string secret = 3;
+  string crypto = 4;
+  string identity = 5;
+}
+
+message ConfigList {
+  repeated Config config = 1;
+}
