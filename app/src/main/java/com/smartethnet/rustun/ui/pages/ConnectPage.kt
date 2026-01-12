@@ -43,15 +43,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.smartethnet.rustun.R
 import com.smartethnet.rustun.proto.Config
 import com.smartethnet.rustun.ui.component.ErrorMessageDialog
-import com.smartethnet.rustun.ui.theme.RustunTheme
 import com.smartethnet.rustun.util.ConnectState
 import com.smartethnet.rustun.viewmodel.ConnectViewModel
 import kotlinx.coroutines.launch
@@ -261,27 +256,5 @@ fun ControlPanel(
 
             if (error != null) Text(text = error, color = errorTextColor)
         }
-    }
-}
-
-@Composable
-@PreviewLightDark
-fun ConnectPagePreview() {
-    RustunTheme {
-        val config = Config.newBuilder()
-            .setName("My VPN Server")
-            .setServer("192.168.1.8:18080")
-            .setSecret("rustun")
-            .setIdentity("branch_a")
-            .setCrypto("XOR")
-            .build()
-
-        val context = LocalContext.current
-        val viewModel: ConnectViewModel = viewModel(factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return ConnectViewModel(context) as T
-            }
-        })
-        ConnectPage(config, viewModel)
     }
 }

@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.util.Locale
 
 @SuppressLint("VpnServicePolicy")
 class RustunVpnService : VpnService(), RustunEventListener {
@@ -131,8 +132,14 @@ class RustunVpnService : VpnService(), RustunEventListener {
                     // 读取data
                     val data = buffer.sliceArray(IntRange(0, length - 1))
 
-                    // 转发
-                    client?.write(data)
+                    // 解析报文
+                    val pair = parseVpnPacket(data)
+                    if (pair != null) {
+                        Log.d(TAG, "${pair.first} -> ${pair.second}: $length bytes")
+
+                        // 转发
+                        client?.write(data)
+                    }
                 } catch (e: Throwable) {
                     Log.e(TAG, "转发[VPN网卡]数据到失败", e)
                 }
@@ -269,6 +276,39 @@ class RustunVpnService : VpnService(), RustunEventListener {
         } else {
             throw IllegalArgumentException("invalid route: $cidr")
         }
+    }
+
+    fun parseVpnPacket(packet: ByteArray): Pair<String, String>? {
+        if (packet.size < 20) {
+            return null
+        }
+
+        // 解析IPv4版本
+        val version = (packet[0].toInt() shr 4) and 0x0F // 版本字段是第一个字节的高4位
+        if (version != 4) {
+            return null
+        }
+
+        // 获取源IP和目的IP地址（IPv4头部从第12位到第19位）
+        val sourceIp = String.format(
+            Locale.CHINA,
+            "%d.%d.%d.%d",
+            packet[12].toInt() and 0xFF,
+            packet[13].toInt() and 0xFF,
+            packet[14].toInt() and 0xFF,
+            packet[15].toInt() and 0xFF
+        )
+        val destinationIp = String.format(
+            Locale.CHINA,
+            "%d.%d.%d.%d",
+            packet[16].toInt() and 0xFF,
+            packet[17].toInt() and 0xFF,
+            packet[18].toInt() and 0xFF,
+            packet[19].toInt() and 0xFF
+        )
+
+        // 返回结果
+        return Pair(sourceIp, destinationIp)
     }
 
     private fun logConnectionInfo(
