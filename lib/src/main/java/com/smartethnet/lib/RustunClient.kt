@@ -4,7 +4,6 @@ import com.google.gson.Gson
 import com.smartethnet.lib.crypto.RustunCrypto
 import com.smartethnet.lib.crypto.RustunPlainCrypto
 import com.smartethnet.lib.crypto.RustunXorCrypto
-import com.smartethnet.lib.message.DataMessage
 import com.smartethnet.lib.packet.RustunPacket
 import com.smartethnet.lib.packet.RustunPacketType
 import io.netty.bootstrap.Bootstrap
@@ -90,9 +89,7 @@ class RustunClient(
 
     fun write(byteArray: ByteArray) {
         // 发送数据包
-        val message = DataMessage(byteArray)
-        val data = gson.toJson(message).toByteArray()
-        val packet = RustunPacket(RustunPacketType.DATA.value, data.size, data)
+        val packet = RustunPacket(RustunPacketType.DATA.value, byteArray.size, byteArray)
         channel?.writeAndFlush(packet)
     }
 }
