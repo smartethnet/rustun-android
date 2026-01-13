@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,17 +23,15 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -47,53 +44,21 @@ import kotlinx.coroutines.launch
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun ConfigListPage(
-    onNewConfig: () -> Unit,
-    onConnect: (Config) -> Unit
-) {
+fun ConfigListPage(onNewConfig: () -> Unit, onConnect: (Config) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val configList by context.configsDataStore.data.collectAsState(ConfigList.newBuilder().build())
 
-    var deletedConfig by remember { mutableStateOf<Config?>(null) }
-    val closeDialog = fun() {
-        deletedConfig = null
-    }
-
-    val deleteConfig = fun(config: Config) {
+    fun handleDelete(config: Config) {
         scope.launch {
             context.configsDataStore.updateData { oldData ->
-                val list = oldData.configList.toMutableList().filterNot { it.name == config.name }
+                val list = oldData.configList.toMutableList()
+                    .filterNot { it.name == config.name }
                 ConfigList.newBuilder().addAllConfig(list).build()
             }
-
-            deletedConfig = null
+            snackbarHostState.showSnackbar("${config.name} 已删除")
         }
-    }
-
-    if (deletedConfig != null) {
-        AlertDialog(
-            title = { Text(text = "删除") },
-            onDismissRequest = closeDialog,
-            dismissButton = {
-                TextButton(onClick = closeDialog) { Text("取消") }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    deleteConfig(deletedConfig!!)
-                    closeDialog
-                }) {
-                    Text(
-                        "确定",
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            },
-            text = {
-                Text("是否删除[${deletedConfig!!.name}]?")
-            }
-        )
     }
 
     // UI
@@ -145,19 +110,21 @@ fun ConfigListPage(
                         val dismissState = rememberSwipeToDismissBoxState(
                             confirmValueChange = {
                                 if (it == SwipeToDismissBoxValue.EndToStart) {
-                                    deletedConfig = item
+                                    handleDelete(item)
                                 }
 
                                 false
                             }
                         )
 
-                        SwipeToDismissBox(
-                            state = dismissState,
-                            enableDismissFromStartToEnd = false,
-                            backgroundContent = { DismissBackground() }
-                        ) {
-                            ListItem(item, onConnect)
+                        key(item.name) {
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                enableDismissFromStartToEnd = false,
+                                backgroundContent = { DismissBackground() }
+                            ) {
+                                ListItem(item, onConnect)
+                            }
                         }
                     }
                 }
