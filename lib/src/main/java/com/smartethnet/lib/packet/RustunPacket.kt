@@ -1,5 +1,9 @@
 package com.smartethnet.lib.packet
 
+import com.smartethnet.lib.RustunClientHandler.Companion.gson
+import com.smartethnet.lib.message.HandshakeMessage
+import com.smartethnet.lib.message.KeepAliveMessage
+
 /**
  * 自定义 TCP 报文
  * 报文协议如下
@@ -12,6 +16,22 @@ data class RustunPacket(var type: Byte, var length: Int, var data: ByteArray) {
     companion object {
         const val MAGIC_NUMBER: Int = 0x91929394.toInt()
         const val VERSION: Byte = 0x01
+
+        fun handShakePacket(identity: String): RustunPacket {
+            val message = HandshakeMessage(identity)
+            val data = gson.toJson(message).toByteArray()
+            return RustunPacket(RustunPacketType.HAND_SHAKE.value, data.size, data)
+        }
+
+        fun heartbeatPacket(identity: String): RustunPacket {
+            val message = KeepAliveMessage(identity, "", 0, "", 0, arrayOf())
+            val data = gson.toJson(message).toByteArray()
+            return RustunPacket(RustunPacketType.KEEP_ALIVE.value, data.size, data)
+        }
+        
+        fun dataPacket(data: ByteArray): RustunPacket {
+            return RustunPacket(RustunPacketType.DATA.value, data.size, data)
+        }
     }
 
     override fun equals(other: Any?): Boolean {

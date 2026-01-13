@@ -4,7 +4,6 @@ import android.util.Log
 import com.google.gson.Gson
 import com.smartethnet.lib.message.DataMessage
 import com.smartethnet.lib.message.HandShakeReplyMessage
-import com.smartethnet.lib.message.HandshakeMessage
 import com.smartethnet.lib.message.KeepAliveMessage
 import com.smartethnet.lib.message.ProbeHolePunchMessage
 import com.smartethnet.lib.message.ProbeIpv6Message
@@ -63,13 +62,11 @@ class RustunClientHandler(val identity: String, val listener: RustunEventListene
 
     override fun channelActive(ctx: ChannelHandlerContext) {
         // 发送握手消息
-        val message = HandshakeMessage(identity)
-        val data = gson.toJson(message).toByteArray()
-        val packet = RustunPacket(RustunPacketType.HAND_SHAKE.value, data.size, data)
-
-        Log.d(TAG, "send hand shake message: ${gson.toJson(message)}")
+        val packet = RustunPacket.handShakePacket(identity)
+        Log.d(TAG, "send hand shake message, identity = $identity")
         ctx.channel().writeAndFlush(packet)
 
+        // 触发事件
         listener.onConnected()
     }
 

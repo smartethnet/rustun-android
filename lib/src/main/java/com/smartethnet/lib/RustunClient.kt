@@ -1,11 +1,9 @@
 package com.smartethnet.lib
 
-import com.google.gson.Gson
 import com.smartethnet.lib.crypto.RustunCrypto
 import com.smartethnet.lib.crypto.RustunPlainCrypto
 import com.smartethnet.lib.crypto.RustunXorCrypto
 import com.smartethnet.lib.packet.RustunPacket
-import com.smartethnet.lib.packet.RustunPacketType
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.Channel
 import io.netty.channel.ChannelInitializer
@@ -24,12 +22,7 @@ class RustunClient(
     val secret: String,
     val listener: RustunEventListener
 ) {
-    companion object {
-        val gson = Gson()
-    }
-
-    val group: NioEventLoopGroup = NioEventLoopGroup()
-    val bootstrap: Bootstrap = Bootstrap()
+    var group: NioEventLoopGroup? = null
     var channel: Channel? = null
 
     private fun buildCrypto(crypto: String, secret: String): RustunCrypto {
@@ -44,6 +37,8 @@ class RustunClient(
         val crypto = buildCrypto(crypto, secret)
 
         // 配置boostrap
+        group = NioEventLoopGroup()
+        val bootstrap = Bootstrap()
         bootstrap.group(group)
             // 使用异步
             .channel(NioSocketChannel::class.java)
@@ -73,23 +68,26 @@ class RustunClient(
                 }
             })
 
-        // 发起连接（同步）
-        val future = bootstrap.connect().sync()
-        channel = future.channel()
+        try {
+            // 发起连接（同步）
+            val future = bootstrap.connect().sync()
+            channel = future.channel()
+        } catch (_: Throwable) {
+            group?.shutdownGracefully()
+        }
     }
 
     fun stop() {
         channel?.close()?.sync()
         channel = null
+
+        group?.shutdownGracefully()
+        group = null
     }
 
-    fun destroy() {
-        group.shutdownGracefully()
-    }
-
-    fun write(byteArray: ByteArray) {
+    fun write(data: ByteArray) {
         // 发送数据包
-        val packet = RustunPacket(RustunPacketType.DATA.value, byteArray.size, byteArray)
+        val packet = RustunPacket.dataPacket(data)
         channel?.writeAndFlush(packet)
     }
 }
