@@ -23,16 +23,19 @@ class RustunPacketEncoder(val crypto: RustunCrypto) : MessageToByteEncoder<Rustu
         // 写入消息类型 (1 byte)
         out.writeByte(msg.type.toInt())
 
-        // 写入数据长度 (2 bytes)
-        out.writeShort(msg.length)
-
         // 发送数据
         if (msg.data.isNotEmpty()) {
             // 执行加密
             val encodedMsg = crypto.encrypt(msg.data)
 
+            // 写入数据长度 (2 bytes)
+            out.writeShort(encodedMsg.size)
+
             // 发送
             out.writeBytes(encodedMsg)
+        } else {
+            // 写入数据长度 (2 bytes)
+            out.writeShort(msg.length)
         }
     }
 }
