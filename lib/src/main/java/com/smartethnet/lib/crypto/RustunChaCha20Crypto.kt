@@ -1,6 +1,6 @@
 package com.smartethnet.lib.crypto
 
-class RustunChaCha20Crypto : RustunCrypto {
+class RustunChaCha20Crypto(val secret: String) : RustunCrypto {
     override fun encrypt(data: ByteArray): ByteArray {
         return data
     }

@@ -1,5 +1,8 @@
 package com.smartethnet.lib
 
+import android.util.Log
+import com.smartethnet.lib.crypto.RustunAes256Crypto
+import com.smartethnet.lib.crypto.RustunChaCha20Crypto
 import com.smartethnet.lib.crypto.RustunCrypto
 import com.smartethnet.lib.crypto.RustunPlainCrypto
 import com.smartethnet.lib.crypto.RustunXorCrypto
@@ -25,9 +28,19 @@ class RustunClient(
     var group: NioEventLoopGroup? = null
     var channel: Channel? = null
 
+    init {
+        val crypto = RustunAes256Crypto("rustun")
+        val data = "hello".toByteArray(Charsets.UTF_8)
+
+        val encoded = crypto.encrypt(data)
+        Log.i("test", "${encoded.toUByteArray()}")
+    }
+
     private fun buildCrypto(crypto: String, secret: String): RustunCrypto {
         return when (crypto) {
             "XOR" -> RustunXorCrypto(secret)
+            "AES-256-GCM" -> RustunAes256Crypto(secret)
+            "ChaCha20-Poly1305" -> RustunChaCha20Crypto(secret)
             else -> RustunPlainCrypto()
         }
     }
