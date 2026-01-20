@@ -139,7 +139,14 @@ fun ConnectPage(
             verticalArrangement = Arrangement.spacedBy(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ControlPanel(config, state, handleConnect, handleDisconnect, error)
+            ControlPanel(
+                config,
+                state,
+                viewModel.onlineTime,
+                handleConnect,
+                handleDisconnect,
+                error
+            )
         }
     }
 }
@@ -148,6 +155,7 @@ fun ConnectPage(
 fun ControlPanel(
     config: Config,
     state: ConnectState,
+    onlineTime: String,
     handleConnect: () -> Unit = {},
     handleDisconnect: () -> Unit = {},
     error: String? = null
@@ -251,7 +259,7 @@ fun ControlPanel(
                     Text(text = stateText, color = errorTextColor)
                 }
 
-                Text("00:00")
+                Text(onlineTime)
             }
 
             if (error != null) Text(text = error, color = errorTextColor)

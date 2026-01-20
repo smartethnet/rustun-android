@@ -14,9 +14,11 @@ import androidx.lifecycle.viewModelScope
 import com.smartethnet.rustun.proto.Config
 import com.smartethnet.rustun.service.RustunVpnService
 import com.smartethnet.rustun.util.ConnectState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class ConnectViewModel(val context: Context) : ViewModel() {
@@ -40,6 +42,34 @@ class ConnectViewModel(val context: Context) : ViewModel() {
         started = SharingStarted.Lazily,
         initialValue = ConnectState.DISCONNECTED
     )
+
+    // 在线时间
+    var onlineTime by mutableStateOf("-")
+        private set
+    private val job = viewModelScope.launch {
+        while (isActive) {
+            if (vpnControl != null) {
+                val now = System.currentTimeMillis()
+                val startTime = vpnControl!!.getService().startTime
+
+                if (startTime > 0) {
+                    val elapse = now - startTime
+
+                    // calc hour and second
+                    val hour = (elapse / 1000) / 3600
+                    val second = (elapse / 1000) % 60
+
+                    // update online time
+                    onlineTime = "$hour:$second"
+                } else {
+                    // update online time
+                    onlineTime = "-"
+                }
+            }
+            
+            delay(1000)
+        }
+    }
 
     // 与vpn服务的链接
     val serviceConnection = object : ServiceConnection {
@@ -88,5 +118,7 @@ class ConnectViewModel(val context: Context) : ViewModel() {
             context.unbindService(serviceConnection)
         } catch (_: Throwable) {
         }
+
+        job.cancel()
     }
 }

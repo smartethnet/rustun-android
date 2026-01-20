@@ -40,8 +40,12 @@ class RustunVpnService : VpnService(), RustunEventListener {
     private var output: FileOutputStream? = null
     private var vpnDataReaderJob: Job? = null
     private val binder = RustunVpnServiceBinder()
-
     private var client: RustunClient? = null
+
+    /**
+     * The time connect success
+     */
+    var startTime = -1L
 
     companion object {
         const val TAG = "Rustun Vpn Service"
@@ -68,7 +72,7 @@ class RustunVpnService : VpnService(), RustunEventListener {
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText("Smart ethnet 服务运行中")
+            .setContentText("Smart Ethnet 服务运行中")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT).build()
 
         // 启动前台服务
@@ -169,6 +173,8 @@ class RustunVpnService : VpnService(), RustunEventListener {
         // 停止服务
         stop()
         Log.i(TAG, "disconnect from server")
+
+        startTime = -1
     }
 
     /**
@@ -223,6 +229,7 @@ class RustunVpnService : VpnService(), RustunEventListener {
 
         // 更新状态
         _serviceState.value = ConnectState.CONNECTED
+        startTime = System.currentTimeMillis()
 
         // 显示前台服务通知
         showForegroundNotification()
