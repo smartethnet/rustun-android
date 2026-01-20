@@ -43,5 +43,8 @@ dependencies {
     // json
     implementation(libs.gson)
 
+    // 加解密库
+    implementation(libs.bouncycastle.jdk18on)
+
     testImplementation(libs.junit)
 }

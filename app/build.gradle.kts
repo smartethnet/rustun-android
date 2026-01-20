@@ -65,11 +65,8 @@ dependencies {
     // 路由框架
     implementation(libs.androidx.naviation.compose)
 
-    // RustunClient
+    // lib
     implementation(project(":lib"))
-
-    // 加解密库
-    implementation(libs.bouncycastle.jdk18on)
 
     // 界面核心 compose
     implementation(libs.androidx.core.ktx)
