@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,6 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -108,6 +110,47 @@ fun ConnectPage(
     // vpn服务状态
     val state by viewModel.state.collectAsState()
 
+    // 推出提示框
+    var showExitDialog by remember { mutableStateOf(false) }
+    if (showExitDialog) {
+        AlertDialog(
+            title = { Text(text = "退出") },
+            text = { Text("已连接服务器，是否退出？") },
+            onDismissRequest = { showExitDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showExitDialog = false
+
+                        // 停止连接
+                        viewModel.stop()
+
+                        // 返回
+                        onBack()
+                    }
+                ) {
+                    Text("确定")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitDialog = false }) {
+                    Text("取消")
+                }
+            },
+            shape = MaterialTheme.shapes.small
+        )
+    }
+
+    // 处理返回事件
+    val handleBack = fun() {
+        // 如果在已连接的情况下，需要提示用户
+        if (state != ConnectState.DISCONNECTED) {
+            showExitDialog = true
+        } else {
+            onBack()
+        }
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -116,7 +159,7 @@ fun ConnectPage(
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = handleBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = null
