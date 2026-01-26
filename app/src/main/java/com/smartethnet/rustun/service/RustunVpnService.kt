@@ -70,7 +70,7 @@ class RustunVpnService : VpnService(), RustunEventListener {
     private fun showForegroundNotification() {
         // 构建通知消息
         val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.mipmap.ic_launcher_foreground)
             .setContentTitle(getString(R.string.app_name))
             .setContentText("Smart Ethnet 服务运行中")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT).build()
