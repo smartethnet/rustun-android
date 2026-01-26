@@ -83,7 +83,7 @@ class RustunVpnService : VpnService(), RustunEventListener {
         }
     }
 
-    suspend fun start(config: Config): String? {
+    suspend fun start(config: Config) {
         // 更新状态
         _serviceState.value = ConnectState.CONNECTING
 
@@ -115,10 +115,8 @@ class RustunVpnService : VpnService(), RustunEventListener {
 
             // 更新状态
             _serviceState.value = ConnectState.DISCONNECTED
-            return e.toString()
+            throw e
         }
-
-        return null
     }
 
     /**

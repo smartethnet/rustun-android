@@ -140,7 +140,7 @@ class ConnectViewModel(val appContext: Context) : ViewModel() {
                     Log.e(TAG, "Failed to bind VPN service")
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             error = "启动失败: ${e.localizedMessage}"
             Log.e(TAG, "Failed to start VPN", e)
         }
@@ -151,8 +151,8 @@ class ConnectViewModel(val appContext: Context) : ViewModel() {
             try {
                 service.getService().start(config)
                 startTimeUpdate()
-            } catch (e: Exception) {
-                error = "VPN启动失败: ${e.localizedMessage}"
+            } catch (e: Throwable) {
+                error = "启动失败: ${e.localizedMessage}"
                 Log.e(TAG, "Failed to start VPN service", e)
             }
         }

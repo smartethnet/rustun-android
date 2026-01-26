@@ -1,5 +1,6 @@
 package com.smartethnet.lib
 
+import android.util.Log
 import com.smartethnet.lib.crypto.RustunAes256Crypto
 import com.smartethnet.lib.crypto.RustunChaCha20Crypto
 import com.smartethnet.lib.crypto.RustunCrypto
@@ -24,6 +25,10 @@ class RustunClient(
     val secret: String,
     val listener: RustunEventListener
 ) {
+    private companion object {
+        const val TAG = "Rustun Client"
+    }
+
     var group: NioEventLoopGroup? = null
     var channel: Channel? = null
 
@@ -76,8 +81,10 @@ class RustunClient(
             // 发起连接（同步）
             val future = bootstrap.connect().sync()
             channel = future.channel()
-        } catch (_: Throwable) {
+        } catch (e: Throwable) {
+            Log.e(TAG, "Connect to server error: " + e.message)
             group?.shutdownGracefully()
+            throw e
         }
     }
 

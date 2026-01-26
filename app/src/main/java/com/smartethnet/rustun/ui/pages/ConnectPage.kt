@@ -75,11 +75,11 @@ fun ConnectPage(
         { result ->
             scope.launch {
                 if (result.resultCode == RESULT_OK) {
-                    Log.i(TAG, "vpn permission granted")
+                    Log.i(TAG, "VPN permission granted")
                     viewModel.start(config)
                 } else {
-                    Log.e(TAG, "failed to get vpn permission")
-                    dialogError = "VPN权限申请失败！请授予VPN权限，以便应用正常运行。"
+                    Log.e(TAG, "Failed to get vpn permission")
+                    dialogError = "权限申请失败！请授予VPN权限，以便应用正常运行。"
                 }
             }
         }
@@ -91,7 +91,7 @@ fun ConnectPage(
 
         // intent不等于空，说明没有授予权限，需要申请权限
         if (intent != null) {
-            Log.i(TAG, "asking for vpn permission")
+            Log.i(TAG, "Asking for vpn permission")
             vpnLauncher.launch(intent)
         }
         // 已有VPN权限，启动vpn服务
