@@ -3,6 +3,7 @@ package com.smartethnet.rustun.ui.pages
 import android.app.Activity.RESULT_OK
 import android.net.VpnService
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -149,6 +150,12 @@ fun ConnectPage(
         } else {
             onBack()
         }
+    }
+
+    // 处理系统返回事件
+    BackHandler {
+        handleBack()
+        true
     }
 
     Scaffold(
