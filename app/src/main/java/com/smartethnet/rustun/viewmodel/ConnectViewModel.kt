@@ -9,6 +9,7 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -57,6 +58,18 @@ class ConnectViewModel(val appContext: Context) : ViewModel() {
     var onlineTime by mutableStateOf("-")
         private set
 
+    // 下载数据量
+    var downloaded by mutableIntStateOf(0)
+
+    // 上传数据量
+    var uploaded by mutableIntStateOf(0)
+
+    // 接收报文量
+    var rxPackets by mutableIntStateOf(0)
+
+    // 发送报文量
+    var txPackets by mutableIntStateOf(0)
+
     private var timeUpdateJob: Job? = null
 
     private fun startTimeUpdate() {
@@ -85,6 +98,14 @@ class ConnectViewModel(val appContext: Context) : ViewModel() {
             val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedMillis) % 60
 
             onlineTime = String.format("%d:%02d:%02d", hours, minutes, seconds)
+
+            // 更新流量统计
+            vpnControl?.getService()?.let {
+                downloaded = it.download / 1024
+                uploaded = it.upload / 1024
+                rxPackets = it.rxPackets
+                txPackets = it.txPackets
+            }
         } else {
             onlineTime = "-"
         }

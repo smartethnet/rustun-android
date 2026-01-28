@@ -42,6 +42,12 @@ class RustunVpnService : VpnService(), RustunEventListener {
     private val binder = RustunVpnServiceBinder()
     private var client: RustunClient? = null
 
+    // 统计信息
+    var download: Int = 0
+    var upload: Int = 0
+    var rxPackets: Int = 0
+    var txPackets: Int = 0
+
     /**
      * The time connect success
      */
@@ -65,6 +71,13 @@ class RustunVpnService : VpnService(), RustunEventListener {
 
     override fun onBind(intent: Intent): IBinder {
         return binder
+    }
+
+    private fun resetStatics() {
+        download = 0
+        upload = 0
+        rxPackets = 0
+        txPackets = 0
     }
 
     private fun showForegroundNotification() {
@@ -141,6 +154,10 @@ class RustunVpnService : VpnService(), RustunEventListener {
 
                         // 转发
                         client?.write(data)
+
+                        // 统计流量
+                        upload += length
+                        txPackets++
                     }
                 } catch (e: Throwable) {
                     Log.e(TAG, "转发[VPN网卡]数据到失败", e)
@@ -160,6 +177,10 @@ class RustunVpnService : VpnService(), RustunEventListener {
         // 更新状态
         _serviceState.value = ConnectState.DISCONNECTED
 
+        // 重置统计信息
+        resetStatics()
+
+        // 停止VPN接口
         stopSelf()
     }
 
@@ -172,6 +193,7 @@ class RustunVpnService : VpnService(), RustunEventListener {
         stop()
         Log.i(TAG, "disconnect from server")
 
+        // 重置启动时间
         startTime = -1
     }
 
@@ -181,6 +203,10 @@ class RustunVpnService : VpnService(), RustunEventListener {
     override fun onDataMessage(message: DataMessage) {
         val data = message.payload
         output?.write(data)
+
+        // 统计流量
+        download += data.size
+        rxPackets++
     }
 
     override fun onHandShakeReplayMessage(message: HandShakeReplyMessage) {

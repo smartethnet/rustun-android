@@ -9,10 +9,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -20,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -46,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.smartethnet.rustun.R
 import com.smartethnet.rustun.proto.Config
@@ -61,7 +67,7 @@ fun ConnectPage(
     viewModel: ConnectViewModel,
     onBack: () -> Unit = {}
 ) {
-    val TAG = "Rustun"
+    val tag = "Rustun"
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -78,10 +84,10 @@ fun ConnectPage(
         { result ->
             scope.launch {
                 if (result.resultCode == RESULT_OK) {
-                    Log.i(TAG, "VPN permission granted")
+                    Log.i(tag, "VPN permission granted")
                     viewModel.start(config)
                 } else {
-                    Log.e(TAG, "Failed to get vpn permission")
+                    Log.e(tag, "Failed to get vpn permission")
                     dialogError = "权限申请失败！请授予VPN权限，以便应用正常运行。"
                 }
             }
@@ -94,7 +100,7 @@ fun ConnectPage(
 
         // intent不等于空，说明没有授予权限，需要申请权限
         if (intent != null) {
-            Log.i(TAG, "Asking for vpn permission")
+            Log.i(tag, "Asking for vpn permission")
             vpnLauncher.launch(intent)
         }
         // 已有VPN权限，启动vpn服务
@@ -197,12 +203,27 @@ fun ConnectPage(
                 handleDisconnect,
                 error
             )
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                val itemModifier = Modifier
+                    .height(100.dp)
+                    .widthIn(200.dp)
+                    .weight(1f)
+
+                DownloadedCard(viewModel.downloaded, itemModifier)
+                UploadedCard(viewModel.uploaded, itemModifier)
+                RxPacketsCard(viewModel.rxPackets, itemModifier)
+                TxPacketsCard(viewModel.txPackets, itemModifier)
+            }
         }
     }
 }
 
 @Composable
-fun ControlPanel(
+private fun ControlPanel(
     config: Config,
     state: ConnectState,
     onlineTime: String,
@@ -313,6 +334,74 @@ fun ControlPanel(
             }
 
             if (error != null) Text(text = error, color = errorTextColor)
+        }
+    }
+}
+
+@Composable
+private fun DownloadedCard(value: Int, modifier: Modifier = Modifier) {
+    Card(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(painterResource(R.drawable.baseline_cloud_download_24), contentDescription = null)
+            Text("Downloaded")
+            Text(
+                "$value KB",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+private fun UploadedCard(value: Int, modifier: Modifier = Modifier) {
+    Card(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(painterResource(R.drawable.baseline_cloud_upload_24), contentDescription = null)
+            Text("Uploaded")
+            Text(
+                "$value KB",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+private fun RxPacketsCard(value: Int, modifier: Modifier = Modifier) {
+    Card(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(painterResource(R.drawable.twotone_move_to_inbox_24), contentDescription = null)
+            Text("RX Packets")
+            Text("$value", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun TxPacketsCard(value: Int, modifier: Modifier = Modifier) {
+    Card(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(painterResource(R.drawable.twotone_outbox_24), contentDescription = null)
+            Text("TX Packets")
+            Text("$value", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
         }
     }
 }
