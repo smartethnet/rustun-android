@@ -70,26 +70,32 @@ class ConnectViewModel(val appContext: Context) : ViewModel() {
     // 发送报文量
     var txPackets by mutableIntStateOf(0)
 
-    private var timeUpdateJob: Job? = null
+    private var staticsUpdateJob: Job? = null
 
-    private fun startTimeUpdate() {
-        timeUpdateJob?.cancel()
-        timeUpdateJob = viewModelScope.launch {
+    private fun startUpdate() {
+        staticsUpdateJob?.cancel()
+        staticsUpdateJob = viewModelScope.launch {
             while (isActive) {
-                updateOnlineTime()
+                updateStatics()
                 delay(TIME_UPDATE_INTERVAL)
             }
         }
     }
 
-    private fun stopTimeUpdate() {
-        timeUpdateJob?.cancel()
-        timeUpdateJob = null
+    private fun stopUpdate() {
+        staticsUpdateJob?.cancel()
+        staticsUpdateJob = null
+
+        // 重置统计信息
         onlineTime = "-"
+        downloaded = 0
+        uploaded = 0
+        rxPackets = 0
+        txPackets = 0
     }
 
     @SuppressLint("DefaultLocale")
-    private fun updateOnlineTime() {
+    private fun updateStatics() {
         val startTime = vpnControl?.getService()?.startTime ?: -1L
         if (startTime > 0) {
             val elapsedMillis = System.currentTimeMillis() - startTime
@@ -128,7 +134,7 @@ class ConnectViewModel(val appContext: Context) : ViewModel() {
         override fun onServiceDisconnected(p0: ComponentName?) {
             vpnControl = null
             isServiceBound = false
-            stopTimeUpdate()
+            stopUpdate()
         }
     }
 
@@ -171,7 +177,7 @@ class ConnectViewModel(val appContext: Context) : ViewModel() {
         viewModelScope.launch {
             try {
                 service.getService().start(config)
-                startTimeUpdate()
+                startUpdate()
             } catch (e: Throwable) {
                 error = "启动失败: ${e.localizedMessage}"
                 Log.e(TAG, "Failed to start VPN service", e)
@@ -181,7 +187,7 @@ class ConnectViewModel(val appContext: Context) : ViewModel() {
     fun stop() = viewModelScope.launch {
         try {
             vpnControl?.getService()?.stop()
-            stopTimeUpdate()
+            stopUpdate()
             _config = null
         } catch (e: Exception) {
             Log.e(TAG, "Failed to stop VPN", e)
@@ -199,12 +205,12 @@ class ConnectViewModel(val appContext: Context) : ViewModel() {
             isServiceBound = false
             vpnControl = null
         }
-        stopTimeUpdate()
+        stopUpdate()
     }
 
     override fun onCleared() {
         super.onCleared()
         disconnectService()
-        timeUpdateJob?.cancel()
+        staticsUpdateJob?.cancel()
     }
 }
