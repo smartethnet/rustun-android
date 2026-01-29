@@ -3,6 +3,9 @@ package com.smartethnet.lib.message
 import com.google.gson.annotations.SerializedName
 
 data class KeepAliveMessage(
+    @SerializedName("name")
+    val name: String,
+
     @SerializedName("identity")
     val identity: String,
 

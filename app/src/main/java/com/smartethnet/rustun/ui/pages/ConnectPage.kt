@@ -206,11 +206,12 @@ fun ConnectPage(
 
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+                maxItemsInEachRow = 2
             ) {
                 val itemModifier = Modifier
                     .height(100.dp)
-                    .widthIn(200.dp)
+                    .widthIn(150.dp)
                     .weight(1f)
 
                 DownloadedCard(viewModel.downloaded, itemModifier)

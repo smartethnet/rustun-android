@@ -24,11 +24,11 @@ data class RustunPacket(var type: Byte, var length: Int, var data: ByteArray) {
         }
 
         fun heartbeatPacket(identity: String): RustunPacket {
-            val message = KeepAliveMessage(identity, "", 0, "", 0, arrayOf())
+            val message = KeepAliveMessage("", identity, "", 0, "", 0, arrayOf())
             val data = gson.toJson(message).toByteArray()
             return RustunPacket(RustunPacketType.KEEP_ALIVE.value, data.size, data)
         }
-        
+
         fun dataPacket(data: ByteArray): RustunPacket {
             return RustunPacket(RustunPacketType.DATA.value, data.size, data)
         }
